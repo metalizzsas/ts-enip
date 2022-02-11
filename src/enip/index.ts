@@ -273,6 +273,12 @@ export class ENIP extends Socket {
                 super.destroy(error);
             });
         }
+        else
+        {
+            //if session id is undefined destroying socket
+            super.destroy();
+        }
+
         return this;
     }
     // endregion

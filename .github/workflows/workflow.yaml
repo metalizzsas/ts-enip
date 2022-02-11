@@ -16,6 +16,6 @@ jobs:
       - uses: EndBug/add-and-commit@v8
         with:
           default_author: github_actions
-          pull: '--rebase --autostash origin build'
+          push: 'origin build --force'
           add: "./dist --force"
           new_branch: "build"

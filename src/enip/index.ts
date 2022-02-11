@@ -234,7 +234,7 @@ export class ENIP extends Socket {
      *        implementation. =[. Thus, I am spinning up a new Method to
      *        handle it. Dont Use Enip.write, use this function instead.
      */
-    write_cip(data: Buffer, connected = false, timeout = 10, cb = null) {
+    write_cip(data: Buffer, connected = false, timeout?: number, cb?: (err?: Error) => void) {
         if (this.state.session.established)
         {
             if (connected === true) {
@@ -251,13 +251,9 @@ export class ENIP extends Socket {
             {
                 const packet = connected
                     ? sendUnitData(this.state.session.id, data, this.state.connection.id, this.state.connection.seq_num)
-                    : sendRRData(this.state.session.id, data, timeout);
+                    : sendRRData(this.state.session.id, data, timeout ?? 10);
     
-                if (cb) {
-                    this.write(packet, cb);
-                } else {
-                    this.write(packet);
-                }
+                this.write(packet, cb);
             }
         }
     }

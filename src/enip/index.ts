@@ -27,7 +27,7 @@ const EIP_PORT = 44818;
  * @fires ENIP#SendUnitData Received
  * @fires ENIP#Unhandled Encapsulated Command Received
  */
-export class ENIP extends Socket {
+export class ENIP extends Socket{
     state: ENIPState
 
     constructor() {
@@ -152,20 +152,27 @@ export class ENIP extends Socket {
      * @returns {Promise}
      * @memberof ENIP
      */
-    async connect_enip(IP_ADDR: string, timeoutSP = 10000) {
+    async connect_enip(IP_ADDR: string, timeoutSP = 10000): Promise<number | null> {
         if (!IP_ADDR) {
             throw new Error("Controller <class> requires IP_ADDR <string>!!!");
         }
-        await new Promise<void>((resolve, reject) => {
+        const available = await new Promise<boolean>((resolve, reject) => {
             lookup(IP_ADDR, (err, addr) => {
-                if (err) reject(new Error("DNS Lookup failed for IP_ADDR " + IP_ADDR));
+                if (err){
+                    new Error("DNS Lookup failed for IP_ADDR " + IP_ADDR)
+                    reject(false);
+                }
 
                 if (!isIPv4(addr)) {
-                    reject(new Error("Invalid IP_ADDR <string> passed to Controller <class>"));
+                    new Error("Invalid IP_ADDR <string> passed to Controller <class>")
+                    reject(false);
                 }
-                resolve();
+                resolve(false);
             });
         });
+
+        if(available == false)
+            return null;
 
         this.state.session.establishing = true;
         this.state.TCP.establishing = true;
@@ -202,7 +209,7 @@ export class ENIP extends Socket {
         );
 
         // Wait for Session to be Registered
-        const sessid = await promiseTimeout(
+        const sessid = await promiseTimeout<number | null>(
             new Promise(resolve => {
                 this.on("Session Registered", sessid => {
                     resolve(sessid);
@@ -268,9 +275,14 @@ export class ENIP extends Socket {
     destroy(error?: Error): this {
         if(this.state.session.id)
         {
-            this.write(unregisterSession(this.state.session.id), () => {
+            this.write(unregisterSession(this.state.session.id), (err?: Error) => {
+                
                 this.state.session.established = false;
-                super.destroy(error);
+
+                if(!err)
+                {
+                    super.destroy(error);
+                }
             });
         }
         else
@@ -291,7 +303,6 @@ export class ENIP extends Socket {
     //endregion
 
     // region Event Handlers
-
     /**
      * @typedef EncapsulationData
      * @type {Object}
@@ -307,7 +318,7 @@ export class ENIP extends Socket {
     /*****************************************************************/
 
     /**
-     * Socket.on('data) Event Handler
+     * Socket.on('data') Event Handler
      *
      * @param {Buffer} - Data Received from Socket.on('data', ...)
      * @memberof ENIP

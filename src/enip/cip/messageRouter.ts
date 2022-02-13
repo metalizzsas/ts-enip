@@ -1,31 +1,30 @@
 export namespace MessageRouter
 {
-    /**
-     * Message router services
-     */
-    export enum services{
-        GET_INSTANCE_ATTRIBUTE_LIST= 0x55,
-        GET_ATTRIBUTES= 0x03,
-        GET_ATTRIBUTE_ALL= 0x01,
-        GET_ATTRIBUTE_SINGLE= 0x0e,
-        RESET= 0x05,
-        START= 0x06,
-        STOP= 0x07,
-        CREATE= 0x08,
-        DELETE= 0x09,
-        MULTIPLE_SERVICE_PACKET= 0x0a,
-        APPLY_ATTRIBUTES= 0x0d,
-        SET_ATTRIBUTE_SINGLE= 0x10,
-        FIND_NEXT= 0x11,
-        READ_TAG= 0x4c,
-        WRITE_TAG= 0x4d,
-        READ_TAG_FRAGMENTED= 0x52,
-        WRITE_TAG_FRAGMENTED= 0x53,
-        READ_MODIFY_WRITE_TAG= 0x4e,
-        FORWARD_OPEN= 0x54,
-        FORWARD_CLOSE= 0x4E
+    /** Message router services */
+    export enum services {
+        GET_INSTANCE_ATTRIBUTE_LIST = 0x55,
+        GET_ATTRIBUTES = 0x03,
+        GET_ATTRIBUTE_ALL = 0x01,
+        GET_ATTRIBUTE_SINGLE = 0x0e,
+        RESET = 0x05,
+        START = 0x06,
+        STOP = 0x07,
+        CREATE = 0x08,
+        DELETE = 0x09,
+        MULTIPLE_SERVICE_PACKET = 0x0a,
+        APPLY_ATTRIBUTES = 0x0d,
+        SET_ATTRIBUTE_SINGLE = 0x10,
+        FIND_NEXT = 0x11,
+        READ_TAG = 0x4c,
+        WRITE_TAG = 0x4d,
+        READ_TAG_FRAGMENTED = 0x52,
+        WRITE_TAG_FRAGMENTED = 0x53,
+        READ_MODIFY_WRITE_TAG = 0x4e,
+        FORWARD_OPEN = 0x54,
+        FORWARD_CLOSE = 0x4E
     };
 
+    /** Message router */
     export type MessageRouter = {
         service: number,
         generalStatusCode: number,
@@ -36,13 +35,17 @@ export namespace MessageRouter
 
     /**
      * Builds a Message Router Request Buffer
+     * @param service EtherNet/IP™ Service
+     * @param path EtherNet/IP™ Path
+     * @param data Data to send
+     * @returns Encapsulated MessageRouter
      */
     export function build(service: number, path: Buffer, data: Buffer): Buffer {
-        const pathBuf = Buffer.from(path);
-        const dataBuf = Buffer.from(data);
+        const pathBuf  = Buffer.from(path);
+        const dataBuf  = Buffer.from(data);
     
-        const pathLen = Math.ceil(pathBuf.length / 2);
-        const buf = Buffer.alloc(2 + pathLen * 2 + dataBuf.length);
+        const pathLen  = Math.ceil(pathBuf.length / 2);
+        const buf  = Buffer.alloc(2 + pathLen * 2 + dataBuf.length);
     
         buf.writeUInt8(service, 0); // Write Service Code to Buffer <USINT>
         buf.writeUInt8(pathLen, 1); // Write Length of EPATH (16 bit word length)
@@ -55,9 +58,11 @@ export namespace MessageRouter
 
     /**
      * Parses a Message Router Request Buffer
+     * @param buf Encapsulated Message router packet
+     * @returns Message router parsed
      */
     export function parse(buf: Buffer): MessageRouter {
-        let messageRouter: MessageRouter = {
+        let messageRouter: MessageRouter  = {
             service: buf.readUInt8(0),
             generalStatusCode: buf.readUInt8(2),
             extendedStatusLength: buf.readUInt8(3),
@@ -66,21 +71,21 @@ export namespace MessageRouter
         };
     
         // Build Extended Status Array
-        let arr = [];
-        for (let i = 0; i < messageRouter.extendedStatusLength; i++) {
+        let arr  = [];
+        for (let i  = 0; i < messageRouter.extendedStatusLength; i++) {
             arr.push(buf.readUInt16LE(i * 2 + 4));
         }
-        messageRouter.extendedStatus = arr;
+        messageRouter.extendedStatus  = arr;
     
         // Get Starting Point of Message Router Data
-        const dataStart = messageRouter.extendedStatusLength * 2 + 4;
+        const dataStart  = messageRouter.extendedStatusLength * 2 + 4;
     
         // Initialize Message Router Data Buffer
-        let data = Buffer.alloc(buf.length - dataStart);
+        let data  = Buffer.alloc(buf.length - dataStart);
     
         // Copy Data to Message Router Data Buffer
         buf.copy(data, 0, dataStart);
-        messageRouter.data = data;
+        messageRouter.data  = data;
     
         return messageRouter;
     };

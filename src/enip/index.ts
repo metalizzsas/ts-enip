@@ -64,12 +64,12 @@ export namespace ENIP
             const connectResult = await new Promise<boolean>((resolve) => {
                 this.socket.connect(EIP_PORT, IP_ADDR);
     
-                this.socket.on("connect", () => {
+                this.socket.once("connect", () => {
                     this.state.TCPState = States.ESTABLISHED;
                     resolve(true);
                 });
     
-                this.socket.on("error", () => () => {
+                this.socket.once("error", () => () => {
                     resolve(false)
                     this.state.TCPState = States.UNCONNECTED;
                 });
@@ -225,6 +225,8 @@ export namespace ENIP
         private handleClose(_hadError: boolean) {
             this.state.session.state = States.UNCONNECTED;
             this.state.TCPState = States.UNCONNECTED;
+            this.socket.removeAllListeners("data");
+            this.socket.removeAllListeners("close");
         }
     }
 }

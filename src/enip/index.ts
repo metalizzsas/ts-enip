@@ -227,6 +227,7 @@ export namespace ENIP
             this.state.TCPState = States.UNCONNECTED;
             this.socket.removeAllListeners("data");
             this.socket.removeAllListeners("close");
+            this.socket.removeAllListeners("error");
         }
     }
 }

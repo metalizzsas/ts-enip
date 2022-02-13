@@ -14,9 +14,9 @@
     "type": "git",
     "url": "git+https://github.com/metalizzsas/ts-enip.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "GNU GNPL v3",
+  "keywords": ["ethernet-ip", "rockwell", "control-logix", "fieldbus", "CIP", "industrial bus"],
+  "author": "Metalizz",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/metalizzsas/ts-enip/issues"
   },

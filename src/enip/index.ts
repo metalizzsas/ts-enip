@@ -19,6 +19,23 @@ export namespace ENIP
     
     const EIP_PORT = 44818;
 
+    interface ENIPEvents
+    {
+        "Session Registration Failed": (error: {code: number, msg: string}) => void;
+        "Session Registered": (sessionid: number) => void;
+        "Session Unregistered": () => void;
+        "SendRRData Received": (data: Encapsulation.CPF.dataItem[]) => void;
+        "SendUnitData Received": (data: Encapsulation.CPF.dataItem[]) => void;
+        "Unhandled Encapsulated Command Received": (data: Encapsulation.Header.ParsedHeader) => void;
+        "close": () => void;
+    }
+
+    declare interface ENIPEventEmitter extends EventEmitter
+    {
+        on<U extends keyof ENIPEvents>(event: U, listener: ENIPEvents[U]): this;
+        emit<U extends keyof ENIPEvents>(event: U, ...args: Parameters<ENIPEvents[U]>): boolean
+    }
+
     /**
      * Low Level Ethernet/IP
      */
@@ -33,15 +50,7 @@ export namespace ENIP
     
         socket: Socket;
     
-        /**
-         * @fires Session Registration Failed
-         * @fires Session Registered
-         * @fires Session Unregistered
-         * @fires SendRRData Received
-         * @fires SendUnitData Received
-         * @fires Unhandled Encapsulated Command Received
-         */
-        public events: EventEmitter;
+        public events: ENIPEventEmitter;
     
         constructor() {
             this.socket = new Socket();
@@ -87,12 +96,12 @@ export namespace ENIP
     
                     setTimeout(() => resolve(undefined), timeoutSP);
     
-                    this.events.on("Session Registered", sessionid => {
+                    this.events.on("Session Registered", (sessionid: number) => {
                         this.state.session.state = States.ESTABLISHED;
                         resolve(sessionid);
                     });
                     this.events.on("Session Registration Failed", error => {
-                        this.state.error.code = error;
+                        this.state.error.code = error.code;
                         this.state.error.msg = "Failed to register Session";
     
                         resolve(undefined);

@@ -33,6 +33,7 @@ export namespace ENIP
     declare interface ENIPEventEmitter extends EventEmitter
     {
         on<U extends keyof ENIPEvents>(event: U, listener: ENIPEvents[U]): this;
+        once<U extends keyof ENIPEvents>(event: U, listener: ENIPEvents[U]): this;
         emit<U extends keyof ENIPEvents>(event: U, ...args: Parameters<ENIPEvents[U]>): boolean
     }
 
@@ -125,7 +126,7 @@ export namespace ENIP
          * Writes Ethernet/IP Data to Socket as an Unconnected Message
          * or a Transport Class 1 Datagram
          */
-        write(data: Buffer, connected = false, timeout?: number, cb?: (err?: Error) => void) {
+        async write(data: Buffer, connected = false, timeout?: number) {
             if (this.state.session.state = States.ESTABLISHED)
             {
                 if (connected === true) 
@@ -144,8 +145,21 @@ export namespace ENIP
                 {
                     //If the packet should be connected, send UnitData otherwise send RRData
                     const packet = (connected) ? Encapsulation.sendUnitData(this.state.session.id, data, this.state.connection.id, this.state.connection.seq_num) : Encapsulation.sendRRData(this.state.session.id, data, timeout ?? 10);
-                    this.socket.write(packet, cb);
+                    await new Promise<boolean>((resolve, reject) => {
+                        
+                        this.socket.write(packet, (err?: Error) => {
+
+                            //timeout rejection
+                            setTimeout(() => reject(false), timeout ?? 10000);
+
+                            resolve(err === undefined ? true : false);
+                        });
+                    }) 
                 }
+            }
+            else
+            {
+                throw new Error("Session not established");
             }
         }
     

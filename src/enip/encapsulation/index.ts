@@ -24,7 +24,7 @@ export namespace Encapsulation
             case 0x00:
                 return "SUCCESS";
             case 0x01:
-                return "FAIL: Sender issued an invalid ecapsulation command.";
+                return "FAIL: Sender issued an invalid encapsulation command.";
             case 0x02:
                 return "FAIL: Insufficient memory resources to handle command.";
             case 0x03:

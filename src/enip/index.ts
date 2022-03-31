@@ -126,7 +126,7 @@ export namespace ENIP
          * Writes Ethernet/IP Data to Socket as an Unconnected Message
          * or a Transport Class 1 Datagram
          */
-        async write(data: Buffer, connected = false, timeout?: number) {
+        async write(data: Buffer, connected = false, timeout?: number): Promise<boolean> {
             if (this.state.session.state = States.ESTABLISHED)
             {
                 if (connected === true) 
@@ -145,7 +145,7 @@ export namespace ENIP
                 {
                     //If the packet should be connected, send UnitData otherwise send RRData
                     const packet = (connected) ? Encapsulation.sendUnitData(this.state.session.id, data, this.state.connection.id, this.state.connection.seq_num) : Encapsulation.sendRRData(this.state.session.id, data, timeout ?? 10);
-                    await new Promise<boolean>((resolve, reject) => {
+                    const write = await new Promise<boolean>((resolve, reject) => {
                         
                         this.socket.write(packet, (err?: Error) => {
 
@@ -154,12 +154,19 @@ export namespace ENIP
 
                             resolve(err === undefined ? true : false);
                         });
-                    }) 
+                    });
+                    
+                    return write;
+                }
+                else
+                {
+                    console.log("ts-enip: Session not registered")
+                    return false;
                 }
             }
             else
             {
-                throw new Error("Session not established");
+                return false;
             }
         }
     
